@@ -29,23 +29,30 @@ class Runner:
 
     def run(self):
         returns = []
+        # 100步一回合
         for time_step in tqdm(range(self.args.time_steps)):
             # reset the environment
             if time_step % self.episode_limit == 0:
+                # 重置
                 s = self.env.reset()
             u = []
             actions = []
             with torch.no_grad():
                 for agent_id, agent in enumerate(self.agents):
+                    # 动作
                     action = agent.select_action(s[agent_id], self.noise, self.epsilon)
                     u.append(action)
                     actions.append(action)
             for i in range(self.args.n_agents, self.args.n_players):
                 actions.append([0, np.random.rand() * 2 - 1, 0, np.random.rand() * 2 - 1, 0])
+            # 环境
             s_next, r, done, info = self.env.step(actions)
+            # 储存
             self.buffer.store_episode(s[:self.args.n_agents], u, r[:self.args.n_agents], s_next[:self.args.n_agents])
             s = s_next
+
             if self.buffer.current_size >= self.args.batch_size:
+                # 结算、更新
                 transitions = self.buffer.sample(self.args.batch_size)
                 for agent in self.agents:
                     other_agents = self.agents.copy()

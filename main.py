@@ -10,6 +10,7 @@ if __name__ == '__main__':
     # get the params
     args = get_args()
     env, args = make_env(args)
+    # 代理
     runner = Runner(args, env)
     if args.evaluate:
         returns = runner.evaluate()
